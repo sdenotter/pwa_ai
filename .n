@@ -5,7 +5,7 @@ copy/paste functionality on the clipboard.html page:
    provide concise overviews, making it easier to understand large amounts  
    of information quickly.                                                  
  2 Language Translation: Instantly translate copied text into multiple      
-   languages, allowing users to communicate or understand content in        
+   languages, allowing users to communicate or understand contegnt in        
    different languages seamlessly.                                          
  3 Sentiment Analysis: Analyze the sentiment of the copied text to determine
    if it is positive, negative, or neutral, which can be useful for         

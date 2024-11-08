@@ -1,5 +1,5 @@
 import sqlite3
-
+import os
 from flask import Flask, render_template, request, jsonify
 import requests
 
@@ -62,7 +62,7 @@ def call_google_ai_api(system_message, user_prompt):
         'https://generativelanguage.googleapis.com/v1beta/models/'
         'gemini-1.5-flash-latest:generateContent'
     )
-    api_key = 'AIzaSyCcOOe0pJGvh99ih__TmxjVh5way3KYkv8'  # Replace with your actual API key
+    api_key = os.environ.get('GOOGLE_API_KEY')  # Get the API key from an environment variable
     headers = {'Content-Type': 'application/json'}
     payload = {
         'contents': [{'parts': [{'text': combined_prompt}]}]
