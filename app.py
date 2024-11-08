@@ -55,22 +55,8 @@ def grammar_suggestions():
     suggestions = "Grammar suggestions would be here."
     return jsonify({'suggestions': suggestions})
 
-@app.route('/process_clipboard', methods=['POST'])
-def process_clipboard():
-    data = request.get_json()
-    text = data.get('text', '')
-    # Process the text as needed (e.g., convert to uppercase)
-    processed_text = text.upper()
-    print(processed_text)
-
-    system = '''
-    Your goal is to evaluate the content that a user is pasting into a text box by giving a 1 to 2 sentence explanation of the data.
-    For example,
-    1. If the user posts a URL, you could return a brief description of the website inferred from the URL (e.g., Washington Post would be 'News' and more info on a specific URL can be inferred from the remaining text),
-    2. If there is code present, give a description of the intent/functionality of the code.
-    3. If the text looks like raw data, try to infer column names or data types and give an explanation of what the data represents.
-    '''
-    combined_prompt = system + '\nUser Generated Text:\n' + processed_text
+def call_google_ai_api(system_message, user_prompt):
+    combined_prompt = system_message + '\n' + user_prompt
 
     google_api_url = (
         'https://generativelanguage.googleapis.com/v1beta/models/'
@@ -97,12 +83,28 @@ def process_clipboard():
             .get('parts', [{}])[0]
             .get('text', '')
         )
+        return generated_text
     except requests.exceptions.RequestException as e:
         print(f"Error communicating with Google API: {e}")
-        generated_text = 'Error communicating with the language model.'
+        return 'Error communicating with the language model.'
+
+@app.route('/process_clipboard', methods=['POST'])
+def process_clipboard():
+    data = request.get_json()
+    text = data.get('text', '')
+    processed_text = text.upper()
+    print(processed_text)
+
+    system_message = '''
+    Your goal is to evaluate the content that a user is pasting into a text box by giving a 1 to 2 sentence explanation of the data.
+    For example,
+    1. If the user posts a URL, you could return a brief description of the website inferred from the URL (e.g., Washington Post would be 'News' and more info on a specific URL can be inferred from the remaining text),
+    2. If there is code present, give a description of the intent/functionality of the code.
+    3. If the text looks like raw data, try to infer column names or data types and give an explanation of what the data represents.
+    '''
+    generated_text = call_google_ai_api(system_message, 'User Generated Text:\n' + processed_text)
 
     print(generated_text)
-    # Return the processed text and the LLM response
     return jsonify({
         'processed_text': processed_text,
         'llm_response': generated_text
@@ -114,47 +116,18 @@ def clipboard_next():
     data = request.get_json()
     generated_text = data.get('generated_text', '')
 
-    # System message for the AI LLM
-    system = '''
+    system_message = '''
     Based on the following summary, generate the top 3 most likely actions a user would take next. Provide each action as a concise bullet point.
     '''
-    combined_prompt = system + '\nSummary:\n' + generated_text
+    generated_text = call_google_ai_api(system_message, 'Summary:\n' + generated_text)
 
-    google_api_url = (
-        'https://generativelanguage.googleapis.com/v1beta/models/'
-        'gemini-1.5-flash-latest:generateContent'
-    )
-    api_key = 'AIzaSyCcOOe0pJGvh99ih__TmxjVh5way3KYkv8'  # Replace with your actual API key
-    headers = {'Content-Type': 'application/json'}
-    payload = {
-        'contents': [{'parts': [{'text': combined_prompt}]}]
-    }
-
-    try:
-        response = requests.post(
-            f'{google_api_url}?key={api_key}',
-            headers=headers,
-            json=payload
-        )
-        response.raise_for_status()
-        google_response = response.json()
-        # Extract the generated actions from the response
-        generated_text = (
-            google_response.get('candidates', [{}])[0]
-            .get('content', {})
-            .get('parts', [{}])[0]
-            .get('text', '')
-        )
-        # Split the actions into a list
-        actions = [
-            action.strip('-• ')
-            for action in generated_text.strip().split('\n') if action
-        ]
-        actions = actions[1:]
-        print(generated_text)
-    except requests.exceptions.RequestException as e:
-        print(f"Error communicating with Google API: {e}")
-        actions = ['Error communicating with the language model.']
+    # Split the actions into a list
+    actions = [
+        action.strip('-• ')
+        for action in generated_text.strip().split('\n') if action
+    ]
+    actions = actions[1:]
+    print(generated_text)
 
     # Return the actions to the frontend
     return jsonify({'actions': actions})
