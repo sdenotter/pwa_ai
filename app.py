@@ -31,6 +31,30 @@ def clipboard():
     return render_template('clipboard.html', title='Clipboard Utility')
 
 
+@app.route('/summarize_text', methods=['POST'])
+def summarize_text():
+    data = request.get_json()
+    text = data.get('text', '')
+    # Implement summarization logic here
+    summarized_text = "Summarized text would be here."
+    return jsonify({'summarized_text': summarized_text})
+
+@app.route('/translate_text', methods=['POST'])
+def translate_text():
+    data = request.get_json()
+    text = data.get('text', '')
+    # Implement translation logic here
+    translated_text = "Translated text would be here."
+    return jsonify({'translated_text': translated_text})
+
+@app.route('/grammar_suggestions', methods=['POST'])
+def grammar_suggestions():
+    data = request.get_json()
+    text = data.get('text', '')
+    # Implement grammar suggestion logic here
+    suggestions = "Grammar suggestions would be here."
+    return jsonify({'suggestions': suggestions})
+
 @app.route('/process_clipboard', methods=['POST'])
 def process_clipboard():
     data = request.get_json()

@@ -29,6 +29,9 @@
 
                         <div class="d-grid gap-2">
                             <button class="btn btn-primary" onclick="copyToClipboard()">Process Clipboard</button>
+                            <button class="btn btn-secondary" onclick="summarizeText()">Summarize Text</button>
+                            <button class="btn btn-secondary" onclick="translateText()">Translate Text</button>
+                            <button class="btn btn-secondary" onclick="grammarSuggestions()">Grammar Suggestions</button>
                             <a href="{{ url_for('home') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
                         </div>
                         <!-- Placeholder for action buttons -->
@@ -44,6 +47,66 @@
     <script>
         const paste_input = document.getElementById('clipboard');
         const output = document.getElementById('output');
+
+        function summarizeText() {
+            const clipboardText = document.getElementById('clipboard').value;
+
+            fetch('/summarize_text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: clipboardText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('output').value = data.summarized_text;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('output').value = 'Error summarizing text.';
+            });
+        }
+
+        function translateText() {
+            const clipboardText = document.getElementById('clipboard').value;
+
+            fetch('/translate_text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: clipboardText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('output').value = data.translated_text;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('output').value = 'Error translating text.';
+            });
+        }
+
+        function grammarSuggestions() {
+            const clipboardText = document.getElementById('clipboard').value;
+
+            fetch('/grammar_suggestions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: clipboardText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('output').value = data.suggestions;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('output').value = 'Error providing grammar suggestions.';
+            });
+        }
 
         function copyToClipboard() {
             const clipboardText = document.getElementById('clipboard').value;
